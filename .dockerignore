@@ -1,0 +1,36 @@
+# Git
+.git
+.gitignore
+.github
+
+# Build artifacts
+bin/
+tmp/
+build-errors.log
+coverage.txt
+coverage.html
+
+# Development
+.env
+.env.local
+.air.toml
+configs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Documentation
+*.md
+docs/
+
+# Tests
+*_test.go
