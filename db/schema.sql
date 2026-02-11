@@ -32,9 +32,9 @@ CREATE TABLE public.identities (
     provider_id_lookup_hash text,
     password_hash text,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    created_by bigint NOT NULL,
+    created_by text NOT NULL,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_by bigint NOT NULL,
+    updated_by text NOT NULL,
     deleted_at timestamp with time zone,
     deleted_by text
 );
@@ -57,6 +57,79 @@ CREATE SEQUENCE public.identities_id_seq
 --
 
 ALTER SEQUENCE public.identities_id_seq OWNED BY public.identities.id;
+
+
+--
+-- Name: product_types; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.product_types (
+    id bigint NOT NULL,
+    uid uuid NOT NULL,
+    name text NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by text NOT NULL,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_by text NOT NULL,
+    deleted_at timestamp with time zone,
+    deleted_by text
+);
+
+
+--
+-- Name: product_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.product_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: product_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.product_types_id_seq OWNED BY public.product_types.id;
+
+
+--
+-- Name: products; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.products (
+    id bigint NOT NULL,
+    uid uuid NOT NULL,
+    name text NOT NULL,
+    product_type_id bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by text NOT NULL,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_by text NOT NULL,
+    deleted_at timestamp with time zone,
+    deleted_by text
+);
+
+
+--
+-- Name: products_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.products_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: products_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.products_id_seq OWNED BY public.products.id;
 
 
 --
@@ -97,9 +170,9 @@ CREATE TABLE public.users (
     username text NOT NULL,
     avatar_url text,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    created_by bigint NOT NULL,
+    created_by text NOT NULL,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_by bigint NOT NULL,
+    updated_by text NOT NULL,
     deleted_at timestamp with time zone,
     deleted_by text
 );
@@ -132,6 +205,20 @@ ALTER TABLE ONLY public.identities ALTER COLUMN id SET DEFAULT nextval('public.i
 
 
 --
+-- Name: product_types id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_types ALTER COLUMN id SET DEFAULT nextval('public.product_types_id_seq'::regclass);
+
+
+--
+-- Name: products id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.products ALTER COLUMN id SET DEFAULT nextval('public.products_id_seq'::regclass);
+
+
+--
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -160,6 +247,38 @@ ALTER TABLE ONLY public.identities
 
 ALTER TABLE ONLY public.identities
     ADD CONSTRAINT identities_uid_key UNIQUE (uid);
+
+
+--
+-- Name: product_types product_types_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_types
+    ADD CONSTRAINT product_types_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: product_types product_types_uid_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_types
+    ADD CONSTRAINT product_types_uid_key UNIQUE (uid);
+
+
+--
+-- Name: products products_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.products
+    ADD CONSTRAINT products_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: products products_uid_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.products
+    ADD CONSTRAINT products_uid_key UNIQUE (uid);
 
 
 --
@@ -232,6 +351,27 @@ CREATE INDEX idx_identities_user_id ON public.identities USING btree (user_id);
 
 
 --
+-- Name: idx_product_types_uid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_product_types_uid ON public.product_types USING btree (uid);
+
+
+--
+-- Name: idx_products_product_type_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_products_product_type_id ON public.products USING btree (product_type_id);
+
+
+--
+-- Name: idx_products_uid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_products_uid ON public.products USING btree (uid);
+
+
+--
 -- Name: idx_refresh_tokens_active; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -290,6 +430,14 @@ ALTER TABLE ONLY public.identities
 
 
 --
+-- Name: products products_product_type_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.products
+    ADD CONSTRAINT products_product_type_id_fkey FOREIGN KEY (product_type_id) REFERENCES public.product_types(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
@@ -303,4 +451,5 @@ ALTER TABLE ONLY public.identities
 INSERT INTO public.schema_migrations (version) VALUES
     ('20260206000001'),
     ('20260206000002'),
-    ('20260208000003');
+    ('20260208000003'),
+    ('20260211000004');

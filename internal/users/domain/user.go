@@ -16,9 +16,9 @@ type User struct {
 	username  Username
 	avatarURL types.NullString
 	createdAt time.Time
-	createdBy int64
+	createdBy string
 	updatedAt time.Time
-	updatedBy int64
+	updatedBy string
 	deletedAt types.NullTime
 	deletedBy types.NullString
 }
@@ -65,9 +65,9 @@ func ReconstructUser(
 	username Username,
 	avatarURL types.NullString,
 	createdAt time.Time,
-	createdBy int64,
+	createdBy string,
 	updatedAt time.Time,
-	updatedBy int64,
+	updatedBy string,
 	deletedAt types.NullTime,
 	deletedBy types.NullString,
 ) *User {
@@ -117,7 +117,7 @@ func (u *User) CreatedAt() time.Time {
 	return u.createdAt
 }
 
-func (u *User) CreatedBy() int64 {
+func (u *User) CreatedBy() string {
 	return u.createdBy
 }
 
@@ -125,7 +125,7 @@ func (u *User) UpdatedAt() time.Time {
 	return u.updatedAt
 }
 
-func (u *User) UpdatedBy() int64 {
+func (u *User) UpdatedBy() string {
 	return u.updatedBy
 }
 

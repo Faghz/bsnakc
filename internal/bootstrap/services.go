@@ -14,6 +14,8 @@ import (
 	authdomain "github.com/elzestia/go-boilerplate/internal/auth/domain"
 	identitiesapp "github.com/elzestia/go-boilerplate/internal/identities/application"
 	identitydomain "github.com/elzestia/go-boilerplate/internal/identities/domain"
+	productsapp "github.com/elzestia/go-boilerplate/internal/products/application"
+	productsports "github.com/elzestia/go-boilerplate/internal/products/application"
 	"github.com/elzestia/go-boilerplate/internal/shared/adapters/postgres"
 	"github.com/elzestia/go-boilerplate/internal/shared/application/ports"
 	"github.com/elzestia/go-boilerplate/internal/shared/config"
@@ -25,12 +27,14 @@ import (
 )
 
 type Services struct {
-	UserService      usersapp.Service
-	AuthService      authapp.Service
-	TokenService     authports.TokenService
-	RefreshTokenRepo authdomain.RefreshTokenRepository
-	DiscordProvider  authoauth.Provider
-	Validator        validation.Validator
+	UserService        usersapp.Service
+	AuthService        authapp.Service
+	TokenService       authports.TokenService
+	RefreshTokenRepo   authdomain.RefreshTokenRepository
+	DiscordProvider    authoauth.Provider
+	Validator          validation.Validator
+	ProductTypeService productsports.ProductTypeService
+	ProductService     productsports.ProductService
 }
 
 func initServices(db *sqlx.DB, redis *redis.Client, repos *Repositories, cfg *config.Config, logger ports.Logger) *Services {
@@ -84,12 +88,18 @@ func initServices(db *sqlx.DB, redis *redis.Client, repos *Repositories, cfg *co
 		discordProvider,        // OAuth provider
 	)
 
+	// Product services
+	productTypeSvc := productsapp.NewProductTypeService(repos.ProductTypeRepo, logger)
+	productSvc := productsapp.NewProductService(repos.ProductRepo, repos.ProductTypeRepo, logger)
+
 	return &Services{
-		UserService:      userSvc,
-		AuthService:      authSvc,
-		TokenService:     tokenService,
-		RefreshTokenRepo: refreshTokenRepo,
-		DiscordProvider:  discordProvider,
-		Validator:        validator,
+		UserService:        userSvc,
+		AuthService:        authSvc,
+		TokenService:       tokenService,
+		RefreshTokenRepo:   refreshTokenRepo,
+		DiscordProvider:    discordProvider,
+		Validator:          validator,
+		ProductTypeService: productTypeSvc,
+		ProductService:     productSvc,
 	}
 }

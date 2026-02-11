@@ -3,17 +3,11 @@ package middleware
 import (
 	"net/http"
 
+	"github.com/elzestia/go-boilerplate/internal/shared/response"
 	"github.com/elzestia/go-boilerplate/internal/shared/application/ports"
 	"github.com/elzestia/go-boilerplate/internal/shared/errors"
 	"github.com/labstack/echo/v4"
 )
-
-// ErrorResponse represents a JSON error response
-type ErrorResponse struct {
-	Error   string                 `json:"error"`
-	Message string                 `json:"message"`
-	Details map[string]interface{} `json:"details,omitempty"`
-}
 
 // ErrorHandler is a custom error handler for Echo
 func ErrorHandler(logger ports.Logger) echo.HTTPErrorHandler {
@@ -79,7 +73,7 @@ func ErrorHandler(logger ports.Logger) echo.HTTPErrorHandler {
 
 		// Don't send response if already committed
 		if !c.Response().Committed {
-			_ = c.JSON(code, ErrorResponse{
+			_ = c.JSON(code, response.ErrorResponse{
 				Error:   errorCode,
 				Message: message,
 				Details: details,

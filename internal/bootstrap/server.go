@@ -5,6 +5,7 @@ import (
 
 	"github.com/elzestia/go-boilerplate/internal/adapters/http"
 	authhttp "github.com/elzestia/go-boilerplate/internal/auth/adapters/http"
+	productshttp "github.com/elzestia/go-boilerplate/internal/products/adapters/http"
 	"github.com/elzestia/go-boilerplate/internal/shared/application/ports"
 	"github.com/elzestia/go-boilerplate/internal/shared/config"
 	usershttp "github.com/elzestia/go-boilerplate/internal/users/adapters/http"
@@ -22,6 +23,7 @@ func initServer(cfg *config.Config, services *Services, logger ports.Logger) *ec
 		// Initialize handlers
 		authhttp.NewAuthHandler(v1, services.AuthService, services.DiscordProvider, services.TokenService, services.Validator)
 		usershttp.NewUserHandler(v1, services.UserService, services.TokenService, services.Validator)
+		productshttp.NewProductHandler(v1, services.ProductTypeService, services.ProductService, services.TokenService, services.Validator)
 	}
 
 	return server

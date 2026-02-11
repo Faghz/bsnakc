@@ -4,11 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 
 	"github.com/elzestia/go-boilerplate/internal/shared/application/ports"
 	"github.com/elzestia/go-boilerplate/internal/shared/crypto"
 	"github.com/elzestia/go-boilerplate/internal/shared/database"
+	apperrors "github.com/elzestia/go-boilerplate/internal/shared/errors"
 	"github.com/elzestia/go-boilerplate/internal/users/domain"
 	"github.com/jmoiron/sqlx"
 )
@@ -39,20 +39,20 @@ func (r *UserRepository) Create(ctx context.Context, u *domain.User) error {
 	emailEncrypted, err := r.cryptoService.Encrypt(u.Email().String())
 	if err != nil {
 		r.logger.Error(ctx, "Failed to encrypt email", ports.Error(err))
-		return fmt.Errorf("failed to encrypt email: %w", err)
+		return apperrors.NewInternalError("failed to encrypt email", err)
 	}
 
 	nameEncrypted, err := r.cryptoService.Encrypt(u.Name())
 	if err != nil {
 		r.logger.Error(ctx, "Failed to encrypt name", ports.Error(err))
-		return fmt.Errorf("failed to encrypt name: %w", err)
+		return apperrors.NewInternalError("failed to encrypt name", err)
 	}
 
 	// Compute HMAC for email lookup (deterministic, case-insensitive)
 	emailLookupHash, err := r.cryptoService.HMAC(u.Email().String())
 	if err != nil {
 		r.logger.Error(ctx, "Failed to compute email HMAC", ports.Error(err))
-		return fmt.Errorf("failed to compute email HMAC: %w", err)
+		return apperrors.NewInternalError("failed to compute email HMAC", err)
 	}
 
 	query := `
@@ -60,7 +60,7 @@ func (r *UserRepository) Create(ctx context.Context, u *domain.User) error {
 			uid, email_encrypted, email_lookup_hash, name_encrypted, username,
 			avatar_url, created_at, updated_at, created_by, updated_by
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, 0)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, '', '')
 		RETURNING id
 	`
 
@@ -79,7 +79,7 @@ func (r *UserRepository) Create(ctx context.Context, u *domain.User) error {
 
 	if err != nil {
 		r.logger.Error(ctx, "Failed to insert user", ports.Error(err), ports.Int64("user_id", u.ID()))
-		return fmt.Errorf("failed to create user: %w", err)
+		return apperrors.NewInternalError("failed to create user", err)
 	}
 
 	// Update created_by and updated_by to the user's own ID
@@ -91,7 +91,7 @@ func (r *UserRepository) Create(ctx context.Context, u *domain.User) error {
 	_, err = q.ExecContext(ctx, updateQuery, internalID)
 	if err != nil {
 		r.logger.Error(ctx, "Failed to update audit fields", ports.Error(err), ports.Int64("user_id", u.ID()))
-		return fmt.Errorf("failed to update audit fields: %w", err)
+		return apperrors.NewInternalError("failed to update audit fields", err)
 	}
 
 	// Set the internal ID returned by the database
@@ -119,7 +119,7 @@ func (r *UserRepository) FindByID(ctx context.Context, id int64) (*domain.User, 
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.ErrUserNotFound
 		}
-		return nil, fmt.Errorf("failed to find user: %w", err)
+		return nil, apperrors.NewInternalError("failed to find user", err)
 	}
 
 	return r.toDomain(&row)
@@ -143,7 +143,7 @@ func (r *UserRepository) FindByUID(ctx context.Context, uid string) (*domain.Use
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.ErrUserNotFound
 		}
-		return nil, fmt.Errorf("failed to find user: %w", err)
+		return nil, apperrors.NewInternalError("failed to find user", err)
 	}
 
 	return r.toDomain(&row)
@@ -154,7 +154,7 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*domain
 	// Compute HMAC for lookup (normalization happens inside HMAC function)
 	emailLookupHash, err := r.cryptoService.HMAC(email)
 	if err != nil {
-		return nil, fmt.Errorf("failed to compute email HMAC: %w", err)
+		return nil, apperrors.NewInternalError("failed to compute email HMAC", err)
 	}
 
 	var row userRow
@@ -173,7 +173,7 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*domain
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.ErrUserNotFound
 		}
-		return nil, fmt.Errorf("failed to find user: %w", err)
+		return nil, apperrors.NewInternalError("failed to find user", err)
 	}
 
 	return r.toDomain(&row)
@@ -197,7 +197,7 @@ func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.ErrUserNotFound
 		}
-		return nil, fmt.Errorf("failed to find user: %w", err)
+		return nil, apperrors.NewInternalError("failed to find user", err)
 	}
 
 	return r.toDomain(&row)
@@ -208,18 +208,18 @@ func (r *UserRepository) Update(ctx context.Context, u *domain.User) error {
 	// Encrypt with current key
 	emailEncrypted, err := r.cryptoService.Encrypt(u.Email().String())
 	if err != nil {
-		return fmt.Errorf("failed to encrypt email: %w", err)
+		return apperrors.NewInternalError("failed to encrypt email", err)
 	}
 
 	nameEncrypted, err := r.cryptoService.Encrypt(u.Name())
 	if err != nil {
-		return fmt.Errorf("failed to encrypt name: %w", err)
+		return apperrors.NewInternalError("failed to encrypt name", err)
 	}
 
 	// Compute HMAC for email lookup
 	emailLookupHash, err := r.cryptoService.HMAC(u.Email().String())
 	if err != nil {
-		return fmt.Errorf("failed to compute email HMAC: %w", err)
+		return apperrors.NewInternalError("failed to compute email HMAC", err)
 	}
 
 	query := `
@@ -243,12 +243,12 @@ func (r *UserRepository) Update(ctx context.Context, u *domain.User) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("failed to update user: %w", err)
+		return apperrors.NewInternalError("failed to update user", err)
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
+		return apperrors.NewInternalError("failed to get rows affected", err)
 	}
 
 	if rows == 0 {
@@ -265,12 +265,12 @@ func (r *UserRepository) Delete(ctx context.Context, id int64) error {
 	q := database.GetQuerier(ctx, r.db)
 	result, err := q.ExecContext(ctx, query, id)
 	if err != nil {
-		return fmt.Errorf("failed to delete user: %w", err)
+		return apperrors.NewInternalError("failed to delete user", err)
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
+		return apperrors.NewInternalError("failed to get rows affected", err)
 	}
 
 	if rows == 0 {
