@@ -42,9 +42,9 @@ type identityRow struct {
 	ProviderIDLookupHash types.NullString `db:"provider_id_lookup_hash"`
 	PasswordHash         string           `db:"password_hash"`
 	CreatedAt            types.NullTime   `db:"created_at"`
-	CreatedBy            int64            `db:"created_by"`
+	CreatedBy            string           `db:"created_by"`
 	UpdatedAt            types.NullTime   `db:"updated_at"`
-	UpdatedBy            int64            `db:"updated_by"`
+	UpdatedBy            string           `db:"updated_by"`
 	DeletedAt            types.NullTime   `db:"deleted_at"`
 	DeletedBy            types.NullString `db:"deleted_by"`
 }
@@ -111,7 +111,7 @@ func (r *IdentityRepository) Create(ctx context.Context, i *domain.Identity) err
 			uid, user_id, provider, provider_id_encrypted, provider_id_lookup_hash,
 			password_hash, created_at, updated_at, created_by, updated_by
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, 0)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, '', '')
 		RETURNING id
 	`
 

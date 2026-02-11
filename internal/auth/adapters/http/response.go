@@ -1,5 +1,17 @@
 package http
 
+import (
+	"github.com/elzestia/go-boilerplate/internal/shared/response"
+)
+
+// Swagger error response aliases
+type ErrorResponse = response.ErrorResponse
+type BadRequestResponse = response.BadRequestResponse
+type ValidationErrorResponse = response.ValidationErrorResponse
+type UnauthorizedResponse = response.UnauthorizedResponse
+type NotFoundResponse = response.NotFoundResponse
+type ConflictResponse = response.ConflictResponse
+
 // AuthResponse represents the authentication response
 type AuthResponse struct {
 	User             UserResponse `json:"user"`
@@ -17,11 +29,4 @@ type UserResponse struct {
 	Username  string `json:"username" example:"johndoe"`
 	AvatarURL string `json:"avatar_url,omitempty" example:"https://api.dicebear.com/7.x/avataaars/svg?seed=johndoe"`
 	CreatedAt string `json:"created_at" example:"2024-01-15T10:30:00Z"`
-}
-
-// ErrorResponse represents an error response
-type ErrorResponse struct {
-	Error   string                 `json:"error" example:"VALIDATION_ERROR"`
-	Message string                 `json:"message" example:"Validation failed for one or more fields"`
-	Details map[string]interface{} `json:"details,omitempty" swaggertype:"object,string" example:"email:must be a valid email address,password:must be at least 8 characters"`
 }

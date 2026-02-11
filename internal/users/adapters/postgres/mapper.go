@@ -1,8 +1,7 @@
 package postgres
 
 import (
-	"fmt"
-
+	apperrors "github.com/elzestia/go-boilerplate/internal/shared/errors"
 	"github.com/elzestia/go-boilerplate/internal/shared/types"
 	"github.com/elzestia/go-boilerplate/internal/users/domain"
 )
@@ -17,9 +16,9 @@ type userRow struct {
 	Username        string           `db:"username"`
 	AvatarURL       types.NullString `db:"avatar_url"`
 	CreatedAt       types.NullTime   `db:"created_at"`
-	CreatedBy       int64            `db:"created_by"`
+	CreatedBy       string           `db:"created_by"`
 	UpdatedAt       types.NullTime   `db:"updated_at"`
-	UpdatedBy       int64            `db:"updated_by"`
+	UpdatedBy       string           `db:"updated_by"`
 	DeletedAt       types.NullTime   `db:"deleted_at"`
 	DeletedBy       types.NullString `db:"deleted_by"`
 }
@@ -30,24 +29,24 @@ func (r *UserRepository) toDomain(row *userRow) (*domain.User, error) {
 	// Decrypt email
 	emailPlaintext, err := r.cryptoService.Decrypt(row.EmailEncrypted)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decrypt email: %w", err)
+		return nil, apperrors.NewInternalError("failed to decrypt email", err)
 	}
 
 	email, err := domain.NewEmail(emailPlaintext)
 	if err != nil {
-		return nil, fmt.Errorf("invalid email in database: %w", err)
+		return nil, apperrors.NewInternalError("invalid email in database", err)
 	}
 
 	// Decrypt name
 	namePlaintext, err := r.cryptoService.Decrypt(row.NameEncrypted)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decrypt name: %w", err)
+		return nil, apperrors.NewInternalError("failed to decrypt name", err)
 	}
 
 	// Parse username
 	username, err := domain.NewUsername(row.Username)
 	if err != nil {
-		return nil, fmt.Errorf("invalid username in database: %w", err)
+		return nil, apperrors.NewInternalError("invalid username in database", err)
 	}
 
 	return domain.ReconstructUser(

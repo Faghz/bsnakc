@@ -36,9 +36,9 @@ func NewUserHandler(route *echo.Group, userService application.Service, tokenSer
 // @Tags users
 // @Security BearerAuth
 // @Produce json
-// @Success 200 {object} UserResponse
-// @Failure 401 {object} ErrorResponse
-// @Failure 404 {object} ErrorResponse
+// @Success 200 {object} UserResponse "Current user details"
+// @Failure 401 {object} UnauthorizedResponse "Missing or invalid authorization token"
+// @Failure 404 {object} NotFoundResponse "User not found"
 // @Router /v1/users/me [get]
 func (h *UserHandler) GetMe(c echo.Context) error {
 	userID := middleware.GetUserID(c)

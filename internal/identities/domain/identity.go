@@ -25,9 +25,9 @@ type Identity struct {
 	providerID     types.NullString
 	hashedPassword HashedPassword // Only for local provider
 	createdAt      time.Time
-	createdBy      int64
+	createdBy      string
 	updatedAt      time.Time
-	updatedBy      int64
+	updatedBy      string
 	deletedAt      types.NullTime
 	deletedBy      types.NullString
 }
@@ -105,9 +105,9 @@ func ReconstructIdentity(
 	providerID types.NullString,
 	hashedPassword HashedPassword,
 	createdAt time.Time,
-	createdBy int64,
+	createdBy string,
 	updatedAt time.Time,
-	updatedBy int64,
+	updatedBy string,
 	deletedAt types.NullTime,
 	deletedBy types.NullString,
 ) *Identity {
@@ -161,7 +161,7 @@ func (i *Identity) CreatedAt() time.Time {
 	return i.createdAt
 }
 
-func (i *Identity) CreatedBy() int64 {
+func (i *Identity) CreatedBy() string {
 	return i.createdBy
 }
 
@@ -169,7 +169,7 @@ func (i *Identity) UpdatedAt() time.Time {
 	return i.updatedAt
 }
 
-func (i *Identity) UpdatedBy() int64 {
+func (i *Identity) UpdatedBy() string {
 	return i.updatedBy
 }
 

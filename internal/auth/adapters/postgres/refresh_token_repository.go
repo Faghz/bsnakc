@@ -4,12 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"time"
 
 	authdomain "github.com/elzestia/go-boilerplate/internal/auth/domain"
 	"github.com/elzestia/go-boilerplate/internal/shared/application/ports"
 	"github.com/elzestia/go-boilerplate/internal/shared/database"
+	apperrors "github.com/elzestia/go-boilerplate/internal/shared/errors"
 	"github.com/elzestia/go-boilerplate/internal/shared/types"
 	"github.com/jmoiron/sqlx"
 )
@@ -52,9 +52,9 @@ func (r *RefreshTokenRepository) Store(ctx context.Context, tokenID, userID stri
 	err := q.GetContext(ctx, &userInternalID, userQuery, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("user not found: %w", err)
+			return apperrors.NewNotFoundError("user")
 		}
-		return fmt.Errorf("failed to lookup user: %w", err)
+		return apperrors.NewInternalError("failed to lookup user", err)
 	}
 
 	expiresAt := time.Now().Add(ttl)
@@ -66,7 +66,7 @@ func (r *RefreshTokenRepository) Store(ctx context.Context, tokenID, userID stri
 
 	_, err = q.ExecContext(ctx, query, tokenID, userInternalID, expiresAt, time.Now())
 	if err != nil {
-		return fmt.Errorf("failed to store refresh token: %w", err)
+		return apperrors.NewInternalError("failed to store refresh token", err)
 	}
 
 	r.logger.Debug(ctx, "Refresh token stored successfully")
@@ -92,7 +92,7 @@ func (r *RefreshTokenRepository) FindByID(ctx context.Context, tokenID string) (
 		return "", authdomain.ErrRefreshTokenNotFound
 	}
 	if err != nil {
-		return "", fmt.Errorf("failed to find refresh token: %w", err)
+		return "", apperrors.NewInternalError("failed to find refresh token", err)
 	}
 
 	// Check if revoked
@@ -132,12 +132,12 @@ func (r *RefreshTokenRepository) Delete(ctx context.Context, tokenID string) err
 	q := database.GetQuerier(ctx, r.db)
 	result, err := q.ExecContext(ctx, query, time.Now(), tokenID)
 	if err != nil {
-		return fmt.Errorf("failed to revoke refresh token: %w", err)
+		return apperrors.NewInternalError("failed to revoke refresh token", err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("failed to check revocation result: %w", err)
+		return apperrors.NewInternalError("failed to check revocation result", err)
 	}
 
 	if rowsAffected == 0 {
@@ -160,9 +160,9 @@ func (r *RefreshTokenRepository) DeleteAllForUser(ctx context.Context, userID st
 	err := q.GetContext(ctx, &userInternalID, userQuery, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("user not found: %w", err)
+			return apperrors.NewNotFoundError("user")
 		}
-		return fmt.Errorf("failed to lookup user: %w", err)
+		return apperrors.NewInternalError("failed to lookup user", err)
 	}
 
 	query := `
@@ -173,12 +173,12 @@ func (r *RefreshTokenRepository) DeleteAllForUser(ctx context.Context, userID st
 
 	result, err := q.ExecContext(ctx, query, time.Now(), userInternalID)
 	if err != nil {
-		return fmt.Errorf("failed to revoke user tokens: %w", err)
+		return apperrors.NewInternalError("failed to revoke user tokens", err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("failed to check revocation result: %w", err)
+		return apperrors.NewInternalError("failed to check revocation result", err)
 	}
 
 	r.logger.Debug(ctx, "All refresh tokens revoked", ports.Int64("count", rowsAffected))
@@ -199,12 +199,12 @@ func (r *RefreshTokenRepository) CleanupExpired(ctx context.Context) (int64, err
 
 	result, err := r.db.ExecContext(ctx, query, time.Now(), cutoff)
 	if err != nil {
-		return 0, fmt.Errorf("failed to cleanup expired tokens: %w", err)
+		return 0, apperrors.NewInternalError("failed to cleanup expired tokens", err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return 0, fmt.Errorf("failed to check cleanup result: %w", err)
+		return 0, apperrors.NewInternalError("failed to check cleanup result", err)
 	}
 
 	r.logger.Debug(ctx, "Expired refresh tokens cleaned up", ports.Int64("count", rowsAffected))

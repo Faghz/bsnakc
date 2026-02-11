@@ -1,3 +1,6 @@
+include .env
+DATABASE_URL ?= "postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSLMODE}"
+
 .PHONY: help run build test migrate-up migrate-down migrate-create swagger clean
 
 help: ## Show this help message
@@ -27,13 +30,13 @@ test-coverage: test ## Run tests with coverage report
 migrate-up: ## Run database migrations
 	@docker run --rm --network host \
 		-v "$(PWD)/db:/db" \
-		-e DATABASE_URL="postgres://postgres:postgres@localhost:5432/marshal?sslmode=disable" \
+		-e DATABASE_URL="$(DATABASE_URL)" \
 		amacneil/dbmate:latest up
 
 migrate-down: ## Rollback database migrations
 	@docker run --rm --network host \
 		-v "$(PWD)/db:/db" \
-		-e DATABASE_URL="postgres://postgres:postgres@localhost:5432/marshal?sslmode=disable" \
+		-e DATABASE_URL="$(DATABASE_URL)" \
 		amacneil/dbmate:latest down
 
 migrate-create: ## Create a new migration (usage: make migrate-create NAME=your_migration_name)
@@ -45,7 +48,7 @@ migrate-create: ## Create a new migration (usage: make migrate-create NAME=your_
 migrate-status:
 	@docker run --rm --network host \
 		-v "$(PWD)/db:/db" \
-		-e DATABASE_URL="postgres://postgres:postgres@localhost:5432/marshal?sslmode=disable" \
+		-e DATABASE_URL="$(DATABASE_URL)" \
 		amacneil/dbmate:latest status
 
 gen-docs: ## Generate OpenAPI documentation
@@ -54,15 +57,15 @@ gen-docs: ## Generate OpenAPI documentation
 	@echo "OpenAPI docs generated in docs/"
 
 docker-up: ## Start Docker containers
-	@docker-compose up -d
+	@docker compose up -d
 	@echo "Docker containers started"
 
 docker-down: ## Stop Docker containers
-	@docker-compose down
+	@docker compose down
 	@echo "Docker containers stopped"
 
 docker-logs: ## Show Docker container logs
-	@docker-compose logs -f
+	@docker compose logs -f
 
 install-tools: ## Install development tools
 	@echo "All tools run automatically via go run or Docker"

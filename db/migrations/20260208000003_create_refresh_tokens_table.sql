@@ -15,6 +15,15 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
         ON DELETE CASCADE
 );
 
+COMMENT ON COLUMN refresh_tokens.uid IS 'Primary key UUID for the refresh token';
+COMMENT ON COLUMN refresh_tokens.user_id IS 'Reference to the user who owns this token';
+COMMENT ON COLUMN refresh_tokens.expires_at IS 'Token expiration timestamp';
+COMMENT ON COLUMN refresh_tokens.created_at IS 'Token creation timestamp';
+COMMENT ON COLUMN refresh_tokens.revoked_at IS 'Token revocation timestamp';
+COMMENT ON COLUMN refresh_tokens.last_used_at IS 'Last time this token was used for refresh';
+COMMENT ON COLUMN refresh_tokens.ip_address IS 'IP address from which the token was last used';
+COMMENT ON COLUMN refresh_tokens.user_agent IS 'User agent string from the last token usage';
+
 -- Index for fast user lookup (for revoke-all operations)
 CREATE INDEX idx_refresh_tokens_user_id ON refresh_tokens(user_id) WHERE revoked_at IS NULL;
 

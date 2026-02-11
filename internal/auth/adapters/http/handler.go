@@ -54,9 +54,9 @@ func NewAuthHandler(route *echo.Group, authService application.Service, discordP
 // @Accept json
 // @Produce json
 // @Param request body RegisterRequest true "Registration request"
-// @Success 201 {object} AuthResponse
-// @Failure 400 {object} ErrorResponse
-// @Failure 409 {object} ErrorResponse
+// @Success 201 {object} AuthResponse "User registered successfully"
+// @Failure 400 {object} ValidationErrorResponse "Invalid email, password, name, or username"
+// @Failure 409 {object} ConflictResponse "Email or username already registered"
 // @Router /v1/auth/register [post]
 func (h *AuthHandler) Register(c echo.Context) error {
 	var req RegisterRequest
@@ -83,9 +83,9 @@ func (h *AuthHandler) Register(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param request body LoginRequest true "Login request"
-// @Success 200 {object} AuthResponse
-// @Failure 400 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
+// @Success 200 {object} AuthResponse "Login successful"
+// @Failure 400 {object} BadRequestResponse "Invalid request body"
+// @Failure 401 {object} UnauthorizedResponse "Invalid email or password"
 // @Router /v1/auth/login [post]
 func (h *AuthHandler) Login(c echo.Context) error {
 	var req LoginRequest
@@ -125,8 +125,8 @@ func (h *AuthHandler) DiscordLogin(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param code query string true "Authorization code"
-// @Success 200 {object} AuthResponse
-// @Failure 400 {object} ErrorResponse
+// @Success 200 {object} AuthResponse "OAuth login successful"
+// @Failure 400 {object} BadRequestResponse "Missing authorization code"
 // @Router /v1/auth/discord/callback [get]
 func (h *AuthHandler) DiscordCallback(c echo.Context) error {
 	code := c.QueryParam("code")
@@ -150,9 +150,9 @@ func (h *AuthHandler) DiscordCallback(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param request body RefreshTokenRequest true "Refresh token request"
-// @Success 200 {object} AuthResponse
-// @Failure 400 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
+// @Success 200 {object} AuthResponse "Tokens refreshed successfully"
+// @Failure 400 {object} BadRequestResponse "Invalid request body"
+// @Failure 401 {object} UnauthorizedResponse "Invalid or expired refresh token"
 // @Router /v1/auth/refresh [post]
 func (h *AuthHandler) RefreshTokens(c echo.Context) error {
 	var req RefreshTokenRequest
@@ -179,8 +179,8 @@ func (h *AuthHandler) RefreshTokens(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param request body LogoutRequest true "Logout request"
-// @Success 204
-// @Failure 400 {object} ErrorResponse
+// @Success 204 "Logged out successfully"
+// @Failure 400 {object} BadRequestResponse "Invalid request body"
 // @Router /v1/auth/logout [post]
 func (h *AuthHandler) Logout(c echo.Context) error {
 	var req LogoutRequest
@@ -206,8 +206,8 @@ func (h *AuthHandler) Logout(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 204
-// @Failure 401 {object} ErrorResponse
+// @Success 204 "All sessions revoked successfully"
+// @Failure 401 {object} UnauthorizedResponse "Missing or invalid authorization token"
 // @Router /v1/auth/logout-all [post]
 func (h *AuthHandler) LogoutAllDevices(c echo.Context) error {
 	userID := middleware.GetUserID(c)
